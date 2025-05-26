@@ -91,6 +91,22 @@ jobs:
         with:
           name: backend
           path: build/ci_cd_projeto/backend/backend.zip
+  
+  teste:
+    name: Teste
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixando o repositório
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          path: build
+      - name: Executar os testes automatizados
+        shell: bash
+        run: |
+          cd build/ci_cd_projeto/backend
+          npm install
+          npm run test:cov
 
   build_front:
     name: Build Front
