@@ -130,9 +130,9 @@ jobs:
        env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
        with:
-         body: Release
-         tag_name: Release
+         body: Release ${{ needs.GerarVersao.outputs.versao }}
+         tag_name: ${{ needs.GerarVersao.outputs.versao }}
          fail_on_unmatched_files: true
-         files: backend.zip,frontend.zip
+         files: backend.zip, frontend.zip
 
 
