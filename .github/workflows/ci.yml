@@ -76,6 +76,11 @@ jobs:
           cd build/ci_cd_projeto/backend
           npm install
           npm run build
+      - name: Executar os testes automatizados
+        shell: bash
+        run: |
+          cd build/ci_cd_projeto/backend
+          npm run test:cov
       - name: Compacta(Zip) buid
         shell: bash
         run: |
