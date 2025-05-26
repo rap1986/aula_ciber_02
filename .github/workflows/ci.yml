@@ -4,6 +4,17 @@ run-name: CI snapshot disparada por ${{ github.actor }}
 on:   
   # inicia o workflow manualmente
   workflow_dispatch:
+    inputs:
+      tipo_versao:
+        type: choice
+        description: 'Tipo de build'     
+        required: true
+        default: 'minor'
+        options:
+        - patch
+        - minor
+        - major
+
 jobs:  
   build_back:
     name: Build Back
