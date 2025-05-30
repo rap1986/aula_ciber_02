@@ -1,5 +1,5 @@
 name: CI - Snapshot
-run-name: CI ${{ inputs.tipo_versao }} disparada por ${{ github.actor }}
+run-name: CI snapshot disparada por ${{ github.actor }}
 
 on:   
   # inicia o workflow manualmente
@@ -9,15 +9,14 @@ on:
         type: choice
         description: 'Tipo de build'     
         required: true
-        default: 'snapshot'
+        default: 'minor'
         options:
-        - snapshot
         - patch
         - minor
         - major
-jobs:  
+
+jobs:
   GerarVersao:
-    needs: [Assim,FicaFacil]
     runs-on: ubuntu-latest
     outputs:
       versao: ${{ steps.versao.outputs.versao }}
@@ -52,28 +51,14 @@ jobs:
               (*) echo "${{ steps.versoes.outputs.minor }}.snapshot" ;;
             esac)
           echo "--- Versões ---"
-          echo "snapshot=${{ steps.versoes.outputs.minor }}.snapshot_to_ligado"
-          echo "patch=${{ steps.versoes.outputs.patch }}_to_ligado"
-          echo "minor=${{ steps.versoes.outputs.minor }}_to_ligado"
-          echo "major=${{ steps.versoes.outputs.major }}_to_ligado"
-          echo "replace_last=${{ steps.ultimatag.outputs.tag }}_to_ligado"
+          echo "snapshot=${{ steps.versoes.outputs.minor }}.snapshot"
+          echo "patch=${{ steps.versoes.outputs.patch }}"
+          echo "minor=${{ steps.versoes.outputs.minor }}"
+          echo "major=${{ steps.versoes.outputs.major }}"
+          echo "replace_last=${{ steps.ultimatag.outputs.tag }}"
           echo "--- Versão escolhida ---"
-          echo "versao=${versao}_to_ligado"
-          echo "versao=${versao}_to_ligado" >> "$GITHUB_OUTPUT"
-  Assim:
-    runs-on: ubuntu-latest
-    outputs:
-      versao: ${{ steps.versao.outputs.versao }}
-    steps:
-      - name: Baixando o repositório
-        run: echo assim fica facil
-  FicaFacil:
-    runs-on: ubuntu-latest
-    outputs:
-      versao: ${{ steps.versao.outputs.versao }}
-    steps:
-      - name: Baixando o repositório
-        run: echo assim fica facil
+          echo "versao=${versao}"
+          echo "versao=${versao}" >> "$GITHUB_OUTPUT"
 
   build_back:
     name: Build Back
@@ -91,7 +76,6 @@ jobs:
           cd build/ci_cd_projeto/backend
           npm install
           npm run build
-          echo não vai dar certo copiando o projeto errado
       - name: Compacta(Zip) buid
         shell: bash
         run: |
@@ -102,6 +86,24 @@ jobs:
         with:
           name: backend
           path: build/ci_cd_projeto/backend/backend.zip
+  
+  teste_back:
+    name: Teste
+    needs: [build_back]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixando o repositório
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          path: build
+      - name: Executar os testes automatizados
+        shell: bash
+        run: |
+          cd build/ci_cd_projeto/backend
+          npm install
+          npm run test:cov
+
   build_front:
     name: Build Front
     needs: [GerarVersao]
@@ -128,11 +130,20 @@ jobs:
         with:
           name: frontend
           path: build/ci_cd_projeto/frontend/frontend.zip
+
   empacotar:
     name: Empacotar
-    needs: [build_back, build_front, GerarVersao]
+    needs: [teste_back, build_front, GerarVersao]
     runs-on: ubuntu-latest
     steps:
+     - name: Download Zip Frontend
+       uses: actions/download-artifact@v4
+       with:
+         name: frontend
+     - name: Download Zip Backend
+       uses: actions/download-artifact@v4
+       with:
+         name: backend
      - name: Criar Versão / Release e Tag
        uses: softprops/action-gh-release@v2
        env:
@@ -140,5 +151,6 @@ jobs:
        with:
          body: Release ${{ needs.GerarVersao.outputs.versao }}
          tag_name: ${{ needs.GerarVersao.outputs.versao }}
-         fail_on_unmatched_files: false
-         files: backend.zip,frontend.zip
+         fail_on_unmatched_files: true
+         files: backend.zip, frontend.zip
+
