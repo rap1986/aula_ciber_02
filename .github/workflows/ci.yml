@@ -95,12 +95,13 @@ jobs:
       - name: Baixando o repositório
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
-          path: build
+          #repository: ${{ github.repository }}
+          #path: build
+          fetch-depth: 0
       - name: Executar os testes automatizados
         shell: bash
         run: |
-          cd build/ci_cd_projeto/backend
+          cd ci_cd_projeto/backend
           npm install
           npm run test:cov
 
