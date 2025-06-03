@@ -105,19 +105,6 @@ jobs:
           npm install
           npm run test:cov
 
-  sonarqube:
-    name: SonarQube
-    needs: [build_front, teste_back]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
   build_front:
     name: Build Front
     needs: [GerarVersao]
@@ -145,9 +132,22 @@ jobs:
           name: frontend
           path: build/ci_cd_projeto/frontend/frontend.zip
 
+  sonarqube:
+    name: SonarQube
+    needs: [build_front, teste_back]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
   empacotar:
     name: Empacotar
-    needs: [teste_back, build_front, GerarVersao]
+    needs: [GerarVersao, sonarqube]
     runs-on: ubuntu-latest
     steps:
      - name: Download Zip Frontend
