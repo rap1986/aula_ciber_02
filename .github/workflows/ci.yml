@@ -95,8 +95,6 @@ jobs:
       - name: Baixando o repositório
         uses: actions/checkout@v4
         with:
-          #repository: ${{ github.repository }}
-          #path: build
           fetch-depth: 0
       - name: Executar os testes automatizados
         shell: bash
@@ -104,7 +102,11 @@ jobs:
           cd ci_cd_projeto/backend
           npm install
           npm run test:cov
-
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
   build_front:
     name: Build Front
     needs: [GerarVersao]
@@ -131,19 +133,6 @@ jobs:
         with:
           name: frontend
           path: build/ci_cd_projeto/frontend/frontend.zip
-
-  sonarqube:
-    name: SonarQube
-    needs: [build_front, teste_back]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           
   empacotar:
     name: Empacotar
