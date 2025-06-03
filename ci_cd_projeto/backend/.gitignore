@@ -1,3 +1,6 @@
+#Para não dar conflito com projetos forks da aula
+package-lock.json 
+
 # compiled output
 /dist
 /node_modules
